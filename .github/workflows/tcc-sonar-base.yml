@@ -1,0 +1,58 @@
+name: TCC SonarQube base
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sonar-base:
+    runs-on: ubuntu-24.04
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: https://sonarcloud.io
+    steps:
+      - name: Checkout experimental base
+        uses: actions/checkout@v4
+        with:
+          ref: 15b2215acfb08d77402ac4a41f0be358ca4e5afd
+          fetch-depth: 0
+      - name: Verify source revision
+        run: |
+          test "$(git rev-parse HEAD)" = "15b2215acfb08d77402ac4a41f0be358ca4e5afd"
+          echo "BASE_SHA=$(git rev-parse HEAD)"
+          echo "WORKFLOW_SHA=$GITHUB_SHA"
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Build JVM
+        run: |
+          set -o pipefail
+          java -version 2>&1 | tee jdk-version.log
+          ./mvnw -version 2>&1 | tee maven-version.log
+          ./mvnw -B -ntp -Dmaven.test.skip=true package 2>&1 | tee build.log
+      - name: Analyze with SonarScanner for Maven
+        run: |
+          set -o pipefail
+          ./mvnw -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar \
+            -Dsonar.projectKey=MiqueiasBento_yourmenu-serverless \
+            -Dsonar.organization=miqueiasbento \
+            -Dsonar.scm.revision=15b2215acfb08d77402ac4a41f0be358ca4e5afd \
+            -Dsonar.projectVersion=tcc-base \
+            2>&1 | tee sonar.log
+      - name: Preserve execution logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-sonar-base-logs
+          path: |
+            jdk-version.log
+            maven-version.log
+            build.log
+            sonar.log
+          if-no-files-found: ignore
