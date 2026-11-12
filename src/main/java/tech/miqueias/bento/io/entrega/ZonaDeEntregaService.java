@@ -31,12 +31,14 @@ public class ZonaDeEntregaService {
     AcessoRestauranteService acesso;
 
     public List<ZonaDeEntregaResponseDto> listar(Long restauranteId) {
+        acesso.exigirAcesso(restauranteId, Role.GERENTE ,Role.FUNCIONARIO);
         return zonas.listarPorRestaurante(restauranteId).stream()
                 .map(this::dto)
                 .toList();
     }
 
     public ZonaDeEntregaResponseDto buscar(Long restauranteId, Long id) {
+        acesso.exigirAcesso(restauranteId, Role.GERENTE ,Role.FUNCIONARIO);
         return dto(encontrar(restauranteId, id));
     }
 

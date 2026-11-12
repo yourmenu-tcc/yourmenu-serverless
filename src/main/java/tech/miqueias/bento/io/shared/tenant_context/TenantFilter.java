@@ -67,31 +67,48 @@ public class TenantFilter implements ContainerRequestFilter {
                 .build());
     }
 
-    private Long resolveRestauranteId(ContainerRequestContext requestContext) {
-        String headerValue = requestContext.getHeaderString("X-Restaurante-Id");
-        if (headerValue != null && !headerValue.isBlank()) {
+    private Long resolveRestauranteId(ContainerRequestContext request) {
+        String path = request.getUriInfo().getPathParameters().getFirst("restauranteId");
+        String header = request.getHeaderString("X-Restaurante-Id");
+
+        if (path != null) {
+            Long idDaRota;
             try {
-                return Long.valueOf(headerValue.trim());
-            } catch (NumberFormatException ignored) {
-                requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST)
-                        .entity("O cabeçalho X-Restaurante-Id deve ser um identificador numérico.")
-                        .build());
+                idDaRota = Long.parseLong(path);
+            } catch (NumberFormatException e) {
+                request.abortWith(Response.status(Response.Status.BAD_REQUEST)
+                    .entity("ID do restaurante inválido na URL")
+                    .build());
                 return null;
             }
+        
+            if (header != null) {
+                try {
+                    if (!idDaRota.equals(Long.valueOf(header.trim()))) {
+                        request.abortWith(Response.status(Response.Status.BAD_REQUEST)
+                            .entity("Restaurante do cabeçalho diferente da URL")
+                            .build());
+                        return null;
+                    }
+                } catch (NumberFormatException e) {
+                    request.abortWith(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("X-Restaurante-Id deve ser numérico.")
+                        .build());
+                    return null;
+                }
+            }
+            return idDaRota;
         }
 
-        String pathValue = requestContext.getUriInfo().getPathParameters().getFirst("restauranteId");
-        if (pathValue != null && !pathValue.isBlank()) {
+        if (header != null && !header.isBlank()) {
             try {
-                return Long.valueOf(pathValue);
-            } catch (NumberFormatException ignored) {
-                requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST)
-                        .entity("O parâmetro restauranteId deve ser numérico.")
+                return Long.valueOf(header.trim());
+            } catch (NumberFormatException e) {
+                request.abortWith(Response.status(Response.Status.BAD_REQUEST)
+                        .entity("X-Restaurante-Id deve ser numérico.")
                         .build());
-                return null;
             }
         }
-
         return null;
     }
 }

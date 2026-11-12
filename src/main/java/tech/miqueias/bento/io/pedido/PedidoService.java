@@ -2,6 +2,8 @@ package tech.miqueias.bento.io.pedido;
 
 import java.util.List;
 
+import java.util.Map;
+import java.util.LinkedHashMap;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -170,5 +172,21 @@ public class PedidoService {
                 endereco,
                 itens
         );
+    }
+
+     public ResumoPedidoResponseDto resumo(Long restauranteId) {
+        acesso.exigirAcesso(restauranteId, Role.GERENTE, Role.FUNCIONARIO);
+        Map<StatusPedido, Long> contagens = pedidos.contarPorStatusERestaurante(restauranteId);
+        Map<String, Long> pedidosPorStatus = new LinkedHashMap<>();
+        long total = 0;
+        for (StatusPedido status : StatusPedido.values()) {
+            long quantidade = contagens.getOrDefault(status, 0L);
+            pedidosPorStatus.put(status.name(), quantidade);
+            total  = quantidade;
+        }
+        long cancelados = contagens.getOrDefault(StatusPedido.CANCELADO, 0L);
+        long concluidos = contagens.getOrDefault(StatusPedido.ENTREGUE, 0L);
+        return new ResumoPedidoResponseDto(total, total - cancelados - concluidos,
+                cancelados, concluidos, pedidosPorStatus);
     }
 }

@@ -63,4 +63,11 @@ public class PedidoController {
         service.cancelar(restauranteId, id);
         return Response.noContent().build();
     }
+
+    @GET 
+    @Path("/resumo")
+    @RolesAllowed({"ADMINISTRADOR", "GERENTE", "FUNCIONARIO"})
+    public Response resumo(@PathParam("restauranteId") Long restauranteId) {
+        return Response.ok(service.resumo(restauranteId)).build();
+    }
 }

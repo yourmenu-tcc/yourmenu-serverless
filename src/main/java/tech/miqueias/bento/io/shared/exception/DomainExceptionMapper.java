@@ -8,7 +8,16 @@ import jakarta.ws.rs.ext.Provider;
 @Provider
 public class DomainExceptionMapper implements ExceptionMapper<DomainException> {
     @Override public Response toResponse(DomainException exception) {
-        Response.Status status = exception instanceof RecursoNaoEncontradoException ? Response.Status.NOT_FOUND : Response.Status.BAD_REQUEST;
+        Response.Status status;
+
+        if (exception instanceof AcessoNegadoException) {
+            status = Response.Status.FORBIDDEN;
+        } else if (exception instanceof RecursoNaoEncontradoException) {
+            status = Response.Status.NOT_FOUND;
+        } else {
+            status = Response.Status.BAD_REQUEST;
+        }
+
         return Response.status(status).entity(Map.of("erro", exception.getMessage())).build();
     }
 }
