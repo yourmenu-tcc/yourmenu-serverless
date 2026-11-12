@@ -45,6 +45,26 @@ jobs:
             -Dsonar.scm.revision=15b2215acfb08d77402ac4a41f0be358ca4e5afd \
             -Dsonar.projectVersion=tcc-base \
             2>&1 | tee sonar.log
+      - name: Export SonarQube results
+        if: success()
+        run: |
+          mkdir -p sonar-export
+          for attempt in $(seq 1 20); do
+            curl -sS -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/project_analyses/search?project=MiqueiasBento_yourmenu-serverless&ps=3" -o sonar-export/analyses.json
+            if grep -q '15b2215acfb08d77402ac4a41f0be358ca4e5afd' sonar-export/analyses.json; then break; fi
+            sleep 6
+          done
+          curl -sS -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/measures/component?component=MiqueiasBento_yourmenu-serverless&metricKeys=ncloc,classes,functions,complexity,cognitive_complexity,duplicated_lines,duplicated_lines_density,code_smells,sqale_index" -o sonar-export/measures.json
+          curl -sS -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/measures/component_tree?component=MiqueiasBento_yourmenu-serverless&metricKeys=ncloc,classes,functions,complexity,cognitive_complexity,duplicated_lines,duplicated_lines_density,code_smells,sqale_index&qualifiers=FIL,DIR&ps=500" -o sonar-export/component-tree.json
+          curl -sS -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/issues/search?componentKeys=MiqueiasBento_yourmenu-serverless&ps=500" -o sonar-export/issues.json
+          curl -sS -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/qualityprofiles/search?project=MiqueiasBento_yourmenu-serverless" -o sonar-export/quality-profiles.json
+      - name: Preserve SonarQube exports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcc-sonar-export
+          path: sonar-export/
+          if-no-files-found: ignore
       - name: Preserve execution logs
         if: always()
         uses: actions/upload-artifact@v4
