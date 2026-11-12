@@ -1,0 +1,118 @@
+---
+config:
+  layout: elk
+  theme: neutral
+---
+erDiagram
+	direction TB
+	ADMINISTRATOR {
+		BIGINT id  ""  
+		TEXT primeiro_nome  ""  
+		TEXT ultimo_nome  ""  
+		VARCHAR email  ""  
+		VARCHAR senha  ""  
+	}
+
+	RESTAURANTE {
+		BIGINT id  ""  
+		VARCHAR nome  ""  
+		VARCHAR descricao  ""  
+		BOOLEAN aberto  ""  
+		TEXT endereco  ""  
+		TIME hora_abertura  ""  
+		TIME hora_fechamento  ""  
+		TEXT loog_rl  ""  
+		TEXT banner_url  ""  
+		TEXT acesso_url  ""  
+	}
+
+	GERENTE {
+		BIGINT id  ""  
+		BIGINT gerente_id  ""  
+		BIGINT restaurante_id  ""  
+		ROLE papel  ""  
+		BOOLEAN status  ""  
+	}
+
+	CATEGORIA {
+		INT id  ""  
+		BIGINT restaurante_id  ""  
+		VARCHAR nome  ""  
+		VARCHAR descricao  ""  
+	}
+
+	PRATO {
+		BIGINT id  ""  
+		BIGINT restaurante_id  ""  
+		INT categoria_id  ""  
+		VARCHAR nome  ""  
+		TEXT descricao  ""  
+		BIGDECIMAL preco  ""  
+		TEXT img_url  ""  
+	}
+
+	PEDIDO {
+		BIGINT id  ""  
+		BIGINT restaurante_id  ""  
+        VARCHAR cliente ""  
+		TIMESTAMP criado  ""  
+		BIGDECIMAL preco  ""  
+		ENUM status  ""  
+	}
+
+	ITEM_PEDIDO {
+		BIGINT id  ""  
+		INT pedido_id  ""  
+		INT quantidade  ""  
+		BIGDECIMAL preco  ""  
+	}
+
+	PRODUTO_ITEM {
+		BIGINT id  ""  
+		INT item_pedido_id  ""  
+		INT prato_id  ""  
+		NUMERIC divisao  ""  
+	}
+
+	PEDIDO_CLIENTE {
+		BIGINT id  ""  
+		INT pedido_id  ""  
+		TEXT primeiro_nome  ""  
+		TEXT ultimo_nome  ""  
+		NUMERIC telefone  ""  
+	}
+
+	ENDERECO_PEDIDO {
+		BIGINT id  ""  
+		INT pedido_id  ""  
+		INT zona_de_entrega_id  ""  
+		NUMERIC cep  ""  
+		VARCHAR cidade  ""  
+		TEXT rua  ""  
+		VARCHAR numero  ""  
+		VARCHAR bairro  ""  
+		VARCHAR complemento  ""  
+		VARCHAR referencia  ""  
+	}
+
+	ZONA_DE_ENTREGA {
+		BIGINT id  ""  
+		BIGINT restaurante_id  ""  
+		VARCHAR localizacao  ""  
+		DECIMAL valor  ""  
+	}
+
+	ADMINISTRATOR||--o{GERENTE:"gerencia"
+	RESTAURANTE||--o{GERENTE:"gerenciado_por"
+	RESTAURANTE||--o{CATEGORIA:"possui"
+	RESTAURANTE||--o{PRATO:"oferece"
+	RESTAURANTE||--o{PEDIDO:"recebe"
+	RESTAURANTE||--o{ZONA_DE_ENTREGA:"envia_para"
+	CATEGORIA||--o{PRATO:"contem"
+	PEDIDO||--o{ITEM_PEDIDO:"contem"
+	PEDIDO||--||PEDIDO_CLIENTE:"pedido_por"
+	PEDIDO||--||ENDERECO_PEDIDO:"entregue_em"
+	ZONA_DE_ENTREGA||--o{ENDERECO_PEDIDO:"referência"
+	ITEM_PEDIDO||--o{PRODUTO_ITEM:"composto_por"
+	PRATO||--o{PRODUTO_ITEM:"parte_de"
+
